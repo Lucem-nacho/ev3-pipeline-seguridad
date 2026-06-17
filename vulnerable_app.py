@@ -6,6 +6,21 @@ import hashlib
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+@app.after_request
+def apply_caching(response):
+    # Mitigación: Falta de cabecera Anti-Clickjacking
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    
+    # Mitigación: Falta encabezado X-Content-Type-Options
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # Mitigación: Cabecera Content Security Policy (CSP) no configurada
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    
+    # Mitigación: El servidor filtra información (ocultar versión de Flask/Werkzeug)
+    response.headers["Server"] = "Hidden" 
+    
+    return response
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
